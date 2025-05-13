@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.egov</groupId>
-    <artifactId>social-service</artifactId>
+    <artifactId>auth-service</artifactId>
     <version>dev-1</version>
-    <name>social-service</name>
-    <description>social-service</description>
+    <name>auth-service</name>
+    <description>auth-service</description>
     <url/>
     <licenses>
         <license/>
