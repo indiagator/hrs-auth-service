@@ -1,5 +1,6 @@
 package com.egov.authservice;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +23,11 @@ public class MainRestController
     @Autowired
     TokenRepository tokenRepository;
 
+    @Autowired
+    Producer producer;
+
     @PostMapping("signup")
-    public ResponseEntity<String> signup(@RequestBody CredentialView credentialView)
+    public ResponseEntity<String> signup(@RequestBody CredentialView credentialView) throws JsonProcessingException
     {
         // validate the credential [email and phone]
         // persist the credential in the database
@@ -35,13 +39,18 @@ public class MainRestController
         // persist credential into the database
         credentialRepository.save(credential);
 
+        // send an event to the kafka topic
+        AuthEvent authEvent = new AuthEvent();
+        authEvent.setType("SIGNUP");
+        authEvent.setPrincipal(credential.getEmail());
+        producer.pubAuthEvent(authEvent); // publish the message to kafka
+
         return ResponseEntity.ok("Credential saved successfully!");
     }
 
     @PostMapping("login")
     public ResponseEntity<String> login(@RequestBody CredentialView credentialView,
-                                        HttpServletResponse response)
-    {
+                                        HttpServletResponse response) throws JsonProcessingException {
         if(credentialView.getEmail() == "")
         {
             Credential credential = credentialRepository.findByPhone(credentialView.getPhone()).stream().findFirst().get();
@@ -54,10 +63,23 @@ public class MainRestController
                 token.setUserid(credential.getId());
                 token.setStatus("ACTIVE");
                 tokenRepository.save(token);
+
+                // send an event to the kafka topic
+                AuthEvent authEvent = new AuthEvent();
+                authEvent.setType("LOGIN");
+                authEvent.setPrincipal(credential.getEmail());
+                producer.pubAuthEvent(authEvent); // publish the message to kafka
+
                 return ResponseEntity.ok().body(credential.getId().toString());
+
             }
             else
             {
+                // send an event to the kafka topic
+                AuthEvent authEvent = new AuthEvent();
+                authEvent.setType("LOGIN FAILED");
+                authEvent.setPrincipal(credential.getEmail());
+                producer.pubAuthEvent(authEvent); // publish the message to kafka
                 return ResponseEntity.badRequest().body("Invalid credentials!");
             }
         }
@@ -73,10 +95,22 @@ public class MainRestController
                 token.setUserid(credential.getId());
                 token.setStatus("ACTIVE");
                 tokenRepository.save(token);
+
+                // send an event to the kafka topic
+                AuthEvent authEvent = new AuthEvent();
+                authEvent.setType("LOGIN");
+                authEvent.setPrincipal(credential.getEmail());
+                producer.pubAuthEvent(authEvent); // publish the message to kafka
+
                 return ResponseEntity.ok().body(credential.getId().toString());
             }
             else
             {
+                // send an event to the kafka topic
+                AuthEvent authEvent = new AuthEvent();
+                authEvent.setType("LOGIN FAILED");
+                authEvent.setPrincipal(credential.getEmail());
+                producer.pubAuthEvent(authEvent); // publish the message to kafka
                 return ResponseEntity.badRequest().body("Invalid credentials!");
             }
         }
