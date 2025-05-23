@@ -85,7 +85,7 @@ public class MainRestController
         }
         else if (credentialView.getPhone() == "")
         {
-            Credential credential = credentialRepository.findByEmail(credentialView.getEmail()).stream().findFirst().get();
+            Credential credential = credentialRepository.findByEmail(credentialView.getEmail());
             if(credential.getPassword().equals(credentialView.getPassword()))
             {
                 String tokenValue = String.valueOf(new Random().nextInt(900000000));
@@ -169,6 +169,14 @@ public class MainRestController
 
         return ResponseEntity.ok("Logged out successfully!");
     }
+
+    @GetMapping("get/customerid/{email}")
+    public ResponseEntity<Long> getCustomerIdfromEmail(@PathVariable("email") String email)
+    {
+        Credential credential = credentialRepository.findByEmail(email);
+        return ResponseEntity.ok(credential.getId());
+    }
+
 
 
 

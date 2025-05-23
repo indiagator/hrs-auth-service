@@ -8,5 +8,7 @@ import java.util.List;
 public interface CredentialRepository extends JpaRepository<Credential, Long> {
    List<Credential> findByPhone(String phone);
 
-    List<Credential> findByEmail(String email);
+
+
+    Credential findByEmail(String email);
 }
